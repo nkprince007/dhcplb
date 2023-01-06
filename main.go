@@ -13,7 +13,7 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 
-	dhcplb "github.com/facebookincubator/dhcplb/lib"
+	dhcplb "github.com/nkprince007/dhcplb/lib"
 	"github.com/golang/glog"
 )
 

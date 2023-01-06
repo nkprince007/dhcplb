@@ -47,7 +47,7 @@ nodes['dhcplb']['target_dhcp_servers'] = dhcpservers_ips
 nodes['dhcprelay']['target_dhcplb'] = nodes['dhcplb']['ips'][0]
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "ubuntu/trusty64"
+  config.vm.box = "bento/ubuntu-22.04"
   config.berkshelf.enabled = true
   config.berkshelf.berksfile_path = "chef/cookbooks/Berksfile"
 
@@ -62,7 +62,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       if name == "dhcplb"
         vm.vm.synced_folder "../",
-          "/home/vagrant/go/src/github.com/facebookincubator/dhcplb/"
+          "/home/vagrant/go/src/github.com/nkprince007/dhcplb/"
       end
 
       vm.vm.provision :chef_solo do |chef|

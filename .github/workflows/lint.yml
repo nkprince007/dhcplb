@@ -15,7 +15,7 @@ jobs:
           go-version: 1.18
       - name: Convert to modules
         run: |
-          go mod init github.com/facebookincubator/dhcplb
+          go mod init github.com/nkprince007/dhcplb
           go mod tidy
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v3

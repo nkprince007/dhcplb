@@ -1,4 +1,4 @@
 source "https://supermarket.chef.io/"
-cookbook 'apt'
-cookbook 'golang'
-cookbook 'poise-service'
+cookbook 'apt', '~> 7.5.0'
+cookbook 'golang', '~> 5.4.1'
+# cookbook 'poise-service', '~> 1.5.2'

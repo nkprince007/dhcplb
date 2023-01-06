@@ -3,11 +3,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-node.default['go']['version'] = '1.13'
-node.default['go']['packages'] = ['github.com/facebookincubator/dhcplb']
+node.default['golang']['packages'] = ['github.com/nkprince007/dhcplb']
+node.default['golang']['version'] = '1.17.13'
 
 include_recipe 'golang'
-include_recipe 'golang::packages'
 
 directory '/home/vagrant/go' do
   owner 'vagrant'
@@ -17,7 +16,7 @@ end
 
 cookbook_file '/home/vagrant/dhcplb.config.json' do
   source 'dhcplb.config.json'
-  notifies :restart, 'poise_service[dhcplb]'
+  notifies :restart, 'service[dhcplb]'
 end
 
 template '/home/vagrant/dhcp-servers-v4.cfg' do
@@ -26,6 +25,10 @@ template '/home/vagrant/dhcp-servers-v4.cfg' do
 end
 
 # Configure service via https://github.com/poise/poise-service
-poise_service 'dhcplb' do
-  command '/opt/go/bin/dhcplb -version 4 -config /home/vagrant/dhcplb.config.json'
+# poise_service 'dhcplb' do
+#   command '/opt/go/bin/dhcplb -version 4 -config /home/vagrant/dhcplb.config.json'
+# end
+
+service 'dhcplb' do
+  start_command '/opt/go/bin/dhcplb -version 4 -config /home/vagrant/dhcplb.config.json'
 end

@@ -12,7 +12,7 @@ import (
 	"sync"
 
 	"github.com/golang/glog"
-	"github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru"
 	"golang.org/x/time/rate"
 )
 
@@ -25,7 +25,6 @@ import (
 //
 // Adding new items to the cache is also limited to control cache
 // invalidation rate.
-//
 type Throttle struct {
 	mu             sync.Mutex
 	lru            *lru.Cache
@@ -81,18 +80,17 @@ func (c *Throttle) setRate(MaxRatePerItem int) {
 
 // NewThrottle returns a Throttle struct
 //
-//    Capacity:
-//        Maximum capacity of the LRU cache
+//	Capacity:
+//	    Maximum capacity of the LRU cache
 //
-//    CacheRate (per second):
-//        Maximum allowed rate for adding new items to the cache. By that way it
-//        prevents the cache invalidation to happen too soon for the existing rate
-//        items in the cache. Cache rate will be infinite for 0 or negative values.
+//	CacheRate (per second):
+//	    Maximum allowed rate for adding new items to the cache. By that way it
+//	    prevents the cache invalidation to happen too soon for the existing rate
+//	    items in the cache. Cache rate will be infinite for 0 or negative values.
 //
-//    MaxRatePerItem (per second):
-//        Maximum allowed requests rate for each key in the cache. Throttling will
-//        be disabled for 0 or negative values. No cache will be created in that case.
-//
+//	MaxRatePerItem (per second):
+//	    Maximum allowed requests rate for each key in the cache. Throttling will
+//	    be disabled for 0 or negative values. No cache will be created in that case.
 func NewThrottle(Capacity int, CacheRate int, MaxRatePerItem int) (*Throttle, error) {
 	if MaxRatePerItem <= 0 {
 		glog.Info("No throttling will be done")

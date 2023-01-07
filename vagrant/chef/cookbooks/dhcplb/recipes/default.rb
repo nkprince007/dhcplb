@@ -7,6 +7,8 @@ node.default['golang']['version'] = '1.19.1'
 
 include_recipe 'golang'
 
+apt_package %w(gcc vim zsh git)
+
 directory '/home/vagrant/conf' do
   owner 'vagrant'
   group 'vagrant'

@@ -60,6 +60,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.define name do |vm|
       vm.vm.hostname = name
 
+      # Enable agent forwarding via SSH
+      vm.ssh.forward_agent = true
+
       ips = node["ips"]
       ips.each do |ip|
         vm.vm.network :private_network, ip: ip
@@ -67,11 +70,18 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       if name == "dhcplb"
         vm.vm.synced_folder "../",
-          "/home/vagrant/go/src/github.com/nkprince007/dhcplb/"
+          "/home/vagrant/go/src/github.com/nkprince007/dhcplb/",
+          type: 'nfs',
+          nfs_version: 4
         
         vm.vm.provider :virtualbox do |vb|
           vb.customize ["modifyvm", :id, "--memory", "8192"]
           vb.customize ["modifyvm", :id, "--cpus", "6"]
+        end
+
+        vm.vm.provider :libvirt do |domain|
+          domain.memory = 8192
+          domain.cpus = 6
         end
       end
 

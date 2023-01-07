@@ -52,18 +52,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.berkshelf.berksfile_path = "chef/cookbooks/Berksfile"
 
   nodes.each do |name, node|
-    if name == "dhcplb"
-      config.vm.provider "virtualbox" do |v|
-        v.memory = 8192
-        v.cpus = 6
-      end
-    else
-      config.vm.provider "virtualbox" do |v|
-        v.memory = 1024
-        v.cpus = 2
-      end
-    end
-
     config.vm.define name do |vm|
       vm.vm.hostname = name
 
@@ -75,6 +63,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       if name == "dhcplb"
         vm.vm.synced_folder "../",
           "/home/vagrant/go/src/github.com/nkprince007/dhcplb/"
+        
+        vm.vm.provider :virtualbox do |vb|
+          vb.customize ["modifyvm", :id, "--memory", "8192"]
+          vb.customize ["modifyvm", :id, "--cpus", "6"]
+        end
       end
 
       vm.vm.provision :chef_solo do |chef|

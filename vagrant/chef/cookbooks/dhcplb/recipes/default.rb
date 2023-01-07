@@ -9,28 +9,13 @@ include_recipe 'golang'
 
 apt_package %w(gcc vim zsh git)
 
-directory '/home/vagrant/conf' do
-  owner 'vagrant'
-  group 'vagrant'
-  recursive true
-end
-
-directory '/home/vagrant/go' do
-  owner 'vagrant'
-  group 'vagrant'
-  recursive true
-end
-
-directory '/opt/go' do
-  owner 'vagrant'
-  group 'vagrant'
-  recursive true
-end
-
-directory '/opt/go/bin' do
-  owner 'vagrant'
-  group 'vagrant'
-  recursive true
+%w( /home/vagrant/conf /home/vagrant/go /opt/go /opt/go/bin ).each do |path|
+  directory path do
+    owner 'vagrant'
+    group 'vagrant'
+    mode '0755'
+    recursive true
+  end
 end
 
 execute "install dhcplb" do

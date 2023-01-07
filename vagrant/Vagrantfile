@@ -47,7 +47,7 @@ nodes['dhcplb']['target_dhcp_servers'] = dhcpservers_ips
 nodes['dhcprelay']['target_dhcplb'] = nodes['dhcplb']['ips'][0]
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "bento/ubuntu-22.04"
+  config.vm.box = "debian/bullseye64"
   config.berkshelf.enabled = true
   config.berkshelf.berksfile_path = "chef/cookbooks/Berksfile"
 

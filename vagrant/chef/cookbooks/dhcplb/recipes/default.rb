@@ -3,10 +3,15 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-node.default['golang']['packages'] = ['github.com/nkprince007/dhcplb']
-node.default['golang']['version'] = '1.17.13'
+node.default['golang']['version'] = '1.19.1'
 
 include_recipe 'golang'
+
+directory '/home/vagrant/conf' do
+  owner 'vagrant'
+  group 'vagrant'
+  recursive true
+end
 
 directory '/home/vagrant/go' do
   owner 'vagrant'
@@ -14,21 +19,61 @@ directory '/home/vagrant/go' do
   recursive true
 end
 
-cookbook_file '/home/vagrant/dhcplb.config.json' do
-  source 'dhcplb.config.json'
-  notifies :restart, 'service[dhcplb]'
+directory '/opt/go' do
+  owner 'vagrant'
+  group 'vagrant'
+  recursive true
 end
 
-template '/home/vagrant/dhcp-servers-v4.cfg' do
+directory '/opt/go/bin' do
+  owner 'vagrant'
+  group 'vagrant'
+  recursive true
+end
+
+execute "install dhcplb" do
+  command "go install -trimpath -ldflags='-w -s -extldflags=-static'"
+  cwd "/home/vagrant/go/src/github.com/nkprince007/dhcplb"
+  user 'vagrant'
+  group 'vagrant'
+  environment({
+    PATH: "#{node['golang']['install_dir']}/go/bin:#{node['golang']['gobin']}:" \
+          '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+    GOPATH: node['golang']['gopath'],
+    GOBIN: node['golang']['gobin'],
+    GOCACHE: '/tmp/go',
+    CGO_ENABLED: '0',
+  })
+end
+
+cookbook_file '/home/vagrant/conf/dhcplb.config.json' do
+  source 'dhcplb.config.json'
+  notifies :reload, 'systemd_unit[dhcplb.service]', :immediately
+end
+
+template '/home/vagrant/conf/dhcp-servers-v4.cfg' do
   source 'dhcp-servers-v4.cfg.erb'
   # dhcplb will auto load files that change. no need to notify.
 end
 
-# Configure service via https://github.com/poise/poise-service
-# poise_service 'dhcplb' do
-#   command '/opt/go/bin/dhcplb -version 4 -config /home/vagrant/dhcplb.config.json'
-# end
+systemd_unit 'dhcplb.service' do
+  content <<~EOU
+  [Unit]
+  Description=Run dhcplb
+  After=network.target
 
-service 'dhcplb' do
-  start_command '/opt/go/bin/dhcplb -version 4 -config /home/vagrant/dhcplb.config.json'
+  [Service]
+  Type=simple
+  ExecStart=/opt/go/bin/dhcplb -version 4 -config /home/vagrant/conf/dhcplb.config.json
+  ExecReload=/bin/kill -HUP $MAINPID
+  KillMode=process
+  Restart=always
+  User=root
+  Group=root
+
+  [Install]
+  WantedBy=multiuser.target
+  EOU
+
+  action [:create, :enable, :restart]
 end

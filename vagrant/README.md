@@ -54,7 +54,7 @@ This will bring up the following VMs:
   `dhcprelay` instance
 
 You can ssh into VMs using `vagrant ssh ${vm_name}`. Destroy them with 
-`vagrant destrory ${vm_name}`. If you find bugs in the `chef` cookbooks or you
+`vagrant destroy ${vm_name}`. If you find bugs in the `chef` cookbooks or you
 want to change something there you can test your `chef` changes using 
 `vagrant provision ${vm_name}` on a running VM.
 
@@ -76,11 +76,11 @@ $ sudo mv dhcplb $GOBIN
 And restart it with:
 
 ```
-# initctl restart dhcplb
+$ sudo systemctl restart dhcplb
 ```
 
-Logs will be in `/var/log/upstart/dhcplb.log` (becuase the current Vagrant image
-uses a version of Ubuntu using Upstart init replacement).
+Logs will be available via journald using `journalctl -x -f -u dhcplb` (becuase the current Vagrant image
+uses Ubuntu 22.04 using systemd as init system).
 
 On the `dhcpclient` you can initiate dhcp requests using these commands:
 
@@ -92,8 +92,7 @@ On the `dhcpclient` you can initiate dhcp requests using these commands:
 You will see:
 
 ```
-root@dhcpclient:~# dhclient -d -1 -v -pf /run/dhclient.eth1.pid -lf
-/var/lib/dhcp/dhclient.eth1.leases eth1
+root@dhcpclient:~# dhclient -d -1 -v -pf /run/dhclient.eth1.pid -lf /var/lib/dhcp/dhclient.eth1.leases eth1
 Internet Systems Consortium DHCP Client 4.2.4
 Copyright 2004-2012 Internet Systems Consortium.
 All rights reserved.
@@ -130,8 +129,8 @@ Should you need to change something in the `dhcprelay` here are some useful
 commands:
 
 ```
-# initctl list
-# initctl (stop|start|restart) isc-dhcp-relay
+# systemctl list-units
+# systemctl (stop|start|restart) isc-dhcp-relay
 # /usr/sbin/dhcrelay -d -4 -i eth1 -i eth2 192.168.50.104
 ```
 
@@ -141,7 +140,7 @@ In general you don't need to touch the `dhcpserver` but you need to restart it
 you can use:
 
 ```
-# /etc/init.d/isc-dhcp-server restart
+# systemctl restart isc-dhcp-server
 ```
 
 The main config is in `/etc/dhcp/dhcpd.conf`.

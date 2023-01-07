@@ -7,7 +7,7 @@
 
 VAGRANTFILE_API_VERSION = "2"
 NUM_DHCPSERVERS = 2
-NUM_DHCPCLIENTS = 2
+NUM_DHCPCLIENTS = 3
 
 # external net => network where lb, relay and dhcp server sit.
 EXT_NET_PREFIX = "192.168.50"
@@ -37,10 +37,11 @@ end
 
 # list of dhcpservers, to be used to configure the dhcplb instance.
 dhcpservers_ips = []
+start_ip = 255
 (1..NUM_DHCPSERVERS).each do |i|
   int_ip = "#{INT_NET_PREFIX}.#{start_ip}"
   ext_ip = "#{EXT_NET_PREFIX}.#{start_ip}"
-  start_ip += 1
+  start_ip -= 1
   nodes["dhcpserver#{i}"] = 
     {'ips' => [int_ip, ext_ip], 'roles' => ['role[dhcpserver]']}
   dhcpservers_ips.push(ext_ip)

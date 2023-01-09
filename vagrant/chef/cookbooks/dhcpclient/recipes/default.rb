@@ -15,3 +15,7 @@ end
 package 'isc-kea-admin' do
   action :install
 end
+
+package 'dhcpdump' do
+  action :install
+end

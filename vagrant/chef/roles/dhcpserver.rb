@@ -5,5 +5,6 @@
 
 name 'dhcpserver'
 run_list(
-  'recipe[dhcpserver]'
+  'recipe[dhcpserver]',
+  'recipe[golang]',
 )

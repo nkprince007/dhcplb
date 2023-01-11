@@ -5,5 +5,6 @@
 
 name 'dhcprelay'
 run_list(
-  'recipe[dhcprelay]'
+  'recipe[dhcprelay]',
+  'recipe[golang]',
 )

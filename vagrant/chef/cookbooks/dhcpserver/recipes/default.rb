@@ -3,9 +3,11 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-package 'isc-dhcp-server' do
-  action :install
-end
+node.default['golang']['version'] = '1.19.1'
+
+include_recipe 'golang'
+
+apt_package %w(gcc vim zsh git isc-dhcp-server)
 
 node.default['dhcpserver']['subnets'] = [
   {'subnet' => '192.168.50.0', 'range' => []},
@@ -17,7 +19,7 @@ template '/etc/dhcp/dhcpd.conf' do
   owner 'root'
   group 'root'
   mode '0644'
-  notifies :restart, 'service[isc-dhcp-server]'
+  # notifies :restart, 'service[isc-dhcp-server]'
 end
 
 cookbook_file '/etc/default/isc-dhcp-server' do
@@ -25,10 +27,18 @@ cookbook_file '/etc/default/isc-dhcp-server' do
   owner 'root'
   group 'root'
   mode '0644'
-  notifies :restart, 'service[isc-dhcp-server]'
+  # notifies :restart, 'service[isc-dhcp-server]'
 end
 
+# service 'isc-dhcp-server' do
+#     action [:enable, :start]
+# end
 
-service 'isc-dhcp-server' do
-    action [:enable, :start]
+%w( /home/vagrant/go /opt/go /opt/go/bin ).each do |path|
+  directory path do
+    owner 'vagrant'
+    group 'vagrant'
+    mode '0755'
+    recursive true
+  end
 end

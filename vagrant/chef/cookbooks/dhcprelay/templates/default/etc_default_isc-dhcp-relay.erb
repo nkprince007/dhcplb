@@ -13,7 +13,7 @@
 #
 # What servers should the DHCP relay forward requests to?
 # Pointing to the IP of the dhcplb
-SERVERS="<%= node['dhcprelay']['target_dhcplb'] -%>"
+SERVERS="<%= node['dhcprelay']['targets'] -%>"
 
 # On what interfaces should the DHCP relay (dhrelay) serve DHCP requests?
 INTERFACES="eth1 eth2"

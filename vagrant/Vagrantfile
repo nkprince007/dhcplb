@@ -6,30 +6,33 @@
 # with the your environment.
 
 VAGRANTFILE_API_VERSION = "2"
-NUM_DHCPSERVERS = 2
+NUM_DHCPSERVERS = 1
 NUM_DHCPCLIENTS = 2
 
 # external net => network where lb, relay and dhcp server sit.
-EXT_NET_PREFIX = "192.168.50"
+EXT_NET_PREFIX = "192.168.10"
 # internal net => network where only the client and relay sit.
-INT_NET_PREFIX = "192.168.51"
+INT_NET_PREFIX = "192.168.20"
 
 # Following structure represents the list of nodes, please note that the "ips"
 # array is in format [internal ip, external ip]. ORDER MATTERS.
 nodes = {
   'dhcprelay' =>
-    {'ips' => ["#{EXT_NET_PREFIX}.101", "#{INT_NET_PREFIX}.101"],
+    {'ips' => [
+      {'ip' => "#{EXT_NET_PREFIX}.101", 'network' => 'external'},
+      {'ip' => "#{INT_NET_PREFIX}.101", 'network' => 'internal'},
+    ],
      'roles' => ['role[dhcprelay]']},
 
-  'dhcplb' =>
-    {'ips' => ["#{EXT_NET_PREFIX}.102"],
-     'roles' => ['role[dhcplb]']},
+  # 'dhcplb' =>
+  #   {'ips' => ["#{EXT_NET_PREFIX}.102"],
+  #    'roles' => ['role[dhcplb]']},
 }
 
 # list of dhcpclients
 start_ip = 103
 (1..NUM_DHCPCLIENTS).each do |i|
-  int_ip = "#{INT_NET_PREFIX}.#{start_ip}"
+  int_ip = {'ip' => "#{INT_NET_PREFIX}.#{start_ip}", 'network' => 'internal'}
   start_ip += 1
   nodes["dhcpclient#{i}"] = 
     {'ips' => [int_ip], 'roles' => ['role[dhcpclient]']}
@@ -37,19 +40,20 @@ end
 
 # list of dhcpservers, to be used to configure the dhcplb instance.
 dhcpservers_ips = []
-start_ip = 255
+start_ip = 103 
 (1..NUM_DHCPSERVERS).each do |i|
   int_ip = "#{INT_NET_PREFIX}.#{start_ip}"
   ext_ip = "#{EXT_NET_PREFIX}.#{start_ip}"
-  start_ip -= 1
+  ext_ip_map = {'ip' => ext_ip, 'network' => 'external'}
+  start_ip += 1
   nodes["dhcpserver#{i}"] = 
-    {'ips' => [int_ip, ext_ip], 'roles' => ['role[dhcpserver]']}
+    {'ips' => [ext_ip_map], 'roles' => ['role[dhcpserver]']}
   dhcpservers_ips.push(ext_ip)
 end
-nodes['dhcplb']['target_dhcp_servers'] = dhcpservers_ips
+# nodes['dhcplb']['target_dhcp_servers'] = dhcpservers_ips
 
 # the dhcplb ip the relay needs to point to
-nodes['dhcprelay']['target_dhcplb'] = nodes['dhcplb']['ips'][0]
+nodes['dhcprelay']['targets'] = dhcpservers_ips.join(" ")
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "debian/bullseye64"
@@ -65,23 +69,31 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       ips = node["ips"]
       ips.each do |ip|
-        vm.vm.network :private_network, ip: ip
+        vm.vm.network :private_network, ip: ip['ip'], virtualbox__intnet: ip['network']
       end
 
       if name == "dhcplb"
         vm.vm.synced_folder "../",
-          "/home/vagrant/go/src/github.com/nkprince007/dhcplb/",
-          type: 'nfs',
-          nfs_version: 4
+          "/home/vagrant/go/src/github.com/nkprince007/dhcplb/"
+      end
+
+      if /dhcpserver\d+/.match(name)
+        vm.vm.synced_folder "../../coredhcp",
+          "/home/vagrant/go/src/github.com/coredhcp/coredhcp/"
         
         vm.vm.provider :virtualbox do |vb|
-          vb.customize ["modifyvm", :id, "--memory", "8192"]
-          vb.customize ["modifyvm", :id, "--cpus", "6"]
+          vb.customize ["modifyvm", :id, "--memory", "4096"]
+          vb.customize ["modifyvm", :id, "--cpus", "4"]
         end
+      end
 
-        vm.vm.provider :libvirt do |domain|
-          domain.memory = 8192
-          domain.cpus = 6
+      if name == "dhcprelay"
+        vm.vm.synced_folder "../../dhcprelay",
+          "/home/vagrant/go/src/github.com/42wim/dhcprelay/"
+
+        vm.vm.provider :virtualbox do |vb|
+          vb.customize ["modifyvm", :id, "--memory", "4096"]
+          vb.customize ["modifyvm", :id, "--cpus", "4"]
         end
       end
 

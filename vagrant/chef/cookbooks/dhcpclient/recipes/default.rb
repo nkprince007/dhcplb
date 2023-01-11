@@ -11,11 +11,4 @@ apt_repository 'kea-repo' do
   trusted true
 end
 
-# this contains perfdhcp utility
-package 'isc-kea-admin' do
-  action :install
-end
-
-package 'dhcpdump' do
-  action :install
-end
+package %w(isc-kea-admin dhcpdump)
